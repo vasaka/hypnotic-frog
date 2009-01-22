@@ -13,6 +13,7 @@ cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
   refPixbufBack_m = refPixbuf_m->copy();
 
   ptrDrawArea_m->signal_button_release_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_button_release_event));
+  ptrDrawArea_m->signal_scroll_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_scroll_event));
   ptrDrawArea_m->signal_expose_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_expose));
   ptrDrawArea_m->signal_motion_notify_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_motion_notify_event));
 
@@ -37,6 +38,15 @@ bool cell_gui::on_draw_area_button_release_event(GdkEventButton *ev)
   if (!(ev->state&GDK_BUTTON1_MASK))
     ++iBrushSize_m;
 	return 0;
+}
+
+bool cell_gui::on_draw_area_scroll_event(GdkEventScroll* ev)
+{
+  if (ev->direction==GDK_SCROLL_UP)
+    ++iBrushSize_m;
+  else
+    --iBrushSize_m;
+  iBrushSize_m = iBrushSize_m < 1 ? 1:iBrushSize_m;
 }
 
 bool cell_gui::on_draw_area_expose(GdkEventExpose *ev)

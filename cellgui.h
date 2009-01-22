@@ -19,6 +19,7 @@ class cell_gui : public sigc::trackable
   bool on_draw_area_button_release_event(GdkEventButton *ev);
   bool on_draw_area_expose(GdkEventExpose *ev);
   bool on_draw_area_motion_notify_event(GdkEventMotion* ev);
+  bool on_draw_area_scroll_event(GdkEventScroll* ev);
   bool redraw() {ptrDrawArea_m->queue_draw(); return true;}
   bool time_tick();
 public:
