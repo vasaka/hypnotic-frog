@@ -3,7 +3,7 @@
 using namespace std;
 
 cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
-	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(false),iBrushSize_m(1)
+	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(false),iBrushSize_m(1),dStabilizer_m(0.001),iNs_m(1)
 {
   refXml->get_widget("draw_area", ptrDrawArea_m);
   refXml->get_widget("cell", ptrCellWin_m);
@@ -103,14 +103,14 @@ bool cell_gui::time_tick()
       p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;
       int population[3] = {0,0,0};
           
-      for (int xs=-1;xs<=1;++xs)
-        for (int ys=-1;ys<=1;++ys)
+      for (int xs=-iNs_m;xs<=iNs_m;++xs)
+        for (int ys=-iNs_m;ys<=iNs_m;++ys)
         {
           unsigned char* p2 = in + ((y+ys)%h) * rowstride + ((x+xs)%w) * nchannels;
           int p2_type = p2[0]>p2[1] ? (p2[0]>p2[2]? 0 : 2):(p2[1]>p2[2]? 1:2);
           ++population[p2_type];
         }
-      if (population[(p1_type+1)%3]>(population[p1_type]/2-0.5))
+      if (population[(p1_type+1)%3]>(population[p1_type]/2-dStabilizer_m))
       {p[(p1_type+1)%3]=255;p[(p1_type+0)%3]=0;p[(p1_type+2)%3]=0;}
     }
     refPixbufBack_m.swap(refPixbuf_m);

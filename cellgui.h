@@ -12,8 +12,9 @@ class cell_gui : public sigc::trackable
   Glib::RefPtr<Gdk::Pixbuf> refPixbuf_m;
   Glib::RefPtr<Gdk::Pixbuf> refPixbufBack_m;
   int iBrushSize_m;
-
   bool guard_m;
+  int iNs_m;
+  double dStabilizer_m;
   //methods
   bool on_draw_area_button_release_event(GdkEventButton *ev);
   bool on_draw_area_expose(GdkEventExpose *ev);
