@@ -89,14 +89,14 @@ bool cell_gui::time_tick()
 
       p1_type = p1[0]>p1[1] ? (p1[0]>=p1[2]? 0 : 2):(p1[1]>=p1[2]? 1:2);
       p2_type = p2[0]>p2[1] ? (p2[0]>=p2[2]? 0 : 2):(p2[1]>=p2[2]? 1:2);
-      if ((p2_type+1)%3 == p1_type) {p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;}
+      if ((p2_type+2)%3 == p1_type) {p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;}
       ////////////////////////////////////////////###################################################
       p2 = in + abs((y-1)%h) * rowstride + x * nchannels;
       p = out + abs((y-1)%h) * rowstride + x * nchannels;
 
       p1_type = p1[0]>p1[1] ? (p1[0]>=p1[2]? 0 : 2):(p1[1]>=p1[2]? 1:2);
       p2_type = p2[0]>p2[1] ? (p2[0]>=p2[2]? 0 : 2):(p2[1]>=p2[2]? 1:2);
-      if ((p2_type+1)%3 == p1_type) {p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;}
+      if ((p2_type+2)%3 == p1_type) {p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;}
     }
     ptrDrawArea_m->queue_draw(); return true;
 }
