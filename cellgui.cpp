@@ -3,7 +3,7 @@
 using namespace std;
 
 cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
-	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(false),iBrushSize_m(1),dStabilizer_m(0.001),iNs_m(1)
+	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(false),iBrushSize_m(1),dStabilizer_m(1),iNs_m(1)
 {
   refXml->get_widget("draw_area", ptrDrawArea_m);
   refXml->get_widget("cell", ptrCellWin_m);
@@ -100,6 +100,7 @@ bool cell_gui::time_tick()
       unsigned char* p1 = in + y * rowstride + x * nchannels;
       unsigned char* p = out + y * rowstride + x * nchannels;
       int p1_type = p1[0]>p1[1] ? (p1[0]>p1[2]? 0 : 2):(p1[1]>p1[2]? 1:2);
+      //p[p1_type]+=(255-p[p1_type])/2;p[(p1_type+1)%3]/=2;p[(p1_type+2)%3]/=2;
       p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;
       int population[3] = {0,0,0};
           
@@ -110,8 +111,14 @@ bool cell_gui::time_tick()
           int p2_type = p2[0]>p2[1] ? (p2[0]>p2[2]? 0 : 2):(p2[1]>p2[2]? 1:2);
           ++population[p2_type];
         }
-      if (population[(p1_type+1)%3]>(population[p1_type]/2-dStabilizer_m))
-      {p[(p1_type+1)%3]=255;p[(p1_type+0)%3]=0;p[(p1_type+2)%3]=0;}
+//      cout << population[0] << ' ' << population[1] << ' '  <<population[2] << "\n";
+//      population[2]-=population[2]/3.3;
+      if (population[(p1_type+1)%3]>((population[p1_type]/2)-dStabilizer_m))
+      {
+        p[(p1_type+1)%3] += (255-p[(p1_type+1)%3])/2;
+        p[(p1_type+0)%3] /= 8;
+        p[(p1_type+2)%3] /= 8;
+      }
     }
     refPixbufBack_m.swap(refPixbuf_m);
     guard_m = false;
