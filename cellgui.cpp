@@ -16,6 +16,7 @@ cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
   ptrDrawArea_m->signal_scroll_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_scroll_event));
   ptrDrawArea_m->signal_expose_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_expose));
   ptrDrawArea_m->signal_motion_notify_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_motion_notify_event));
+  ptrCellWin_m->signal_key_press_event().connect(sigc::mem_fun(*this, &cell_gui::on_cell_key_press_event));
 
   Glib::signal_idle().connect(sigc::mem_fun(*this, &cell_gui::init_runtime));
   guard_m = false;
@@ -32,12 +33,20 @@ cell_gui::~cell_gui()
 {
   delete ptrDrawArea_m;
 }
-
+// events //////////////////////////////////////////////////////////
 bool cell_gui::on_draw_area_button_release_event(GdkEventButton *ev)
 {  
   if (!(ev->state&GDK_BUTTON1_MASK))
     ++iBrushSize_m;
 	return 0;
+}
+
+bool cell_gui::on_cell_key_press_event(GdkEventKey *ev)
+{
+  if (ev->keyval==GDK_s)
+    save("save.bmp");
+  if (ev->keyval==GDK_l)
+    load("save.bmp");
 }
 
 bool cell_gui::on_draw_area_scroll_event(GdkEventScroll* ev)
@@ -72,7 +81,7 @@ bool cell_gui::on_draw_area_motion_notify_event(GdkEventMotion* ev)
 {
   if (!(ev->state&GDK_BUTTON1_MASK))
     return true; 
-  if (guard_m) return true;
+  while (guard_m) return true;
       guard_m = true;
 
   int x_ = ev->x;
@@ -95,7 +104,7 @@ bool cell_gui::on_draw_area_motion_notify_event(GdkEventMotion* ev)
   return true;
 }
 
-
+// main thread //////////////////////////////////////////////////
 bool cell_gui::time_tick()
 {
   if (guard_m) return true;
@@ -139,4 +148,22 @@ bool cell_gui::time_tick()
     refPixbufBack_m.swap(refPixbuf_m);
     guard_m = false;
     return true;
+}
+
+// other methods
+bool cell_gui::save(std::string filename)
+{
+  while (guard_m) {};
+  guard_m = true;
+
+  refPixbuf_m->save(filename,"bmp");
+  guard_m = false;
+}
+bool cell_gui::load(std::string filename)
+{
+  while (guard_m) {};
+  guard_m = true;
+  Glib::RefPtr<Gdk::Pixbuf> temp = Gdk::Pixbuf::create_from_file(filename);
+  temp->copy_area(0,0,temp->get_width(),temp->get_height(),refPixbuf_m,0,0);
+  guard_m = false;
 }

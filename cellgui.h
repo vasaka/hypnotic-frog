@@ -3,6 +3,7 @@
 
 #include <libglademm/xml.h>
 #include <gtkmm.h>
+#include <string.h>
 
 class cell_gui : public sigc::trackable
 {
@@ -15,11 +16,15 @@ class cell_gui : public sigc::trackable
   bool guard_m;
   int iNs_m;
   double dStabilizer_m;
-  //methods
+  //events
   bool on_draw_area_button_release_event(GdkEventButton *ev);
+  bool on_cell_key_press_event(GdkEventKey *ev);
   bool on_draw_area_expose(GdkEventExpose *ev);
   bool on_draw_area_motion_notify_event(GdkEventMotion* ev);
   bool on_draw_area_scroll_event(GdkEventScroll* ev);
+  //methods
+  bool save(std::string filename);
+  bool load(std::string filename);
   bool redraw() {ptrDrawArea_m->queue_draw(); return true;}
   bool time_tick();
 public:

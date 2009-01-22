@@ -1,2 +1,4 @@
 left mouse and move brushes up the picture
 mouse scroll changes brush size
+s saves state
+l loads state
