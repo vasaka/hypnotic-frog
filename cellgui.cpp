@@ -3,7 +3,7 @@
 using namespace std;
 
 cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
-	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(false),iBrushSize_m(1),dStabilizer_m(1),iNs_m(1)
+	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(false),iBrushSize_m(10),dStabilizer_m(1),iNs_m(1)
 {
   refXml->get_widget("draw_area", ptrDrawArea_m);
   refXml->get_widget("cell", ptrCellWin_m);
