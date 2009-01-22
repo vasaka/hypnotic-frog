@@ -1,0 +1,1 @@
+g++ $(pkg-config --libs --cflags gtkmm-2.4) $(pkg-config --libs --cflags libglademm-2.4) *.cpp  -o frog
