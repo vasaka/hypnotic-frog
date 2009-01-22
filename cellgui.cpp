@@ -110,7 +110,7 @@ bool cell_gui::time_tick()
           int p2_type = p2[0]>p2[1] ? (p2[0]>p2[2]? 0 : 2):(p2[1]>p2[2]? 1:2);
           ++population[p2_type];
         }
-      if (population[(p1_type+1)%3]>(population[p1_type]/2-1))
+      if (population[(p1_type+1)%3]>(population[p1_type]/2-0.5))
       {p[(p1_type+1)%3]=255;p[(p1_type+0)%3]=0;p[(p1_type+2)%3]=0;}
     }
     refPixbufBack_m.swap(refPixbuf_m);
