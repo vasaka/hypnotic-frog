@@ -24,6 +24,7 @@ class cell_gui : public sigc::trackable
 public:
   cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml);
   Gtk::Window& get_window() { return *ptrCellWin_m; }
+  bool init_runtime();
 
   ~cell_gui();
 };

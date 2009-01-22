@@ -3,7 +3,7 @@
 using namespace std;
 
 cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
-	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(false),iBrushSize_m(10),dStabilizer_m(1),iNs_m(1)
+	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(true),iBrushSize_m(10),dStabilizer_m(1),iNs_m(1)
 {
   refXml->get_widget("draw_area", ptrDrawArea_m);
   refXml->get_widget("cell", ptrCellWin_m);
@@ -16,8 +16,15 @@ cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
   ptrDrawArea_m->signal_expose_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_expose));
   ptrDrawArea_m->signal_motion_notify_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_motion_notify_event));
 
+  Glib::signal_idle().connect(sigc::mem_fun(*this, &cell_gui::init_runtime));
+  guard_m = false;
+}
+
+bool cell_gui::init_runtime()
+{
   Glib::signal_timeout().connect(sigc::mem_fun(*this, &cell_gui::redraw), 50);
   Glib::signal_idle().connect(sigc::mem_fun(*this, &cell_gui::time_tick));
+  return false;
 }
 
 cell_gui::~cell_gui()
@@ -68,8 +75,8 @@ bool cell_gui::on_draw_area_motion_notify_event(GdkEventMotion* ev)
   for (int _x = 0;_x<iBrushSize_m;_x++)
     for (int _y = 0;_y<iBrushSize_m;_y++)
     {
-      int x = (x_ + _x)%w;
-      int y = (_y + y_)%h;
+      int x = abs((x_ + _x)%w);
+      int y = abs((_y + y_)%h);
       guchar* p = pixels + y * rowstride + x * nchannels;
       p[0] = ((x*y)/255)%255; p[1] = ((y*y)/255)%255; p[2] = ((x*x)/255)%255;
       //p[0] = p[1] = p[2] = 0;
@@ -93,10 +100,8 @@ bool cell_gui::time_tick()
   guchar* in = refPixbuf_m->get_pixels();
   guchar* out = refPixbufBack_m->get_pixels();
 
-//  cout << w << ' ' << h << ' ' << rowstride << ' ' << nchannels << "\n";
-  
-  for (int x=0;x<w;++x)
-    for (int y=0;y<h;++y)
+  for (int x=0;x<w;x++)
+    for (int y=0;y<h;y++)
     {
       unsigned char* p1 = in + y * rowstride + x * nchannels;
       unsigned char* p = out + y * rowstride + x * nchannels;
@@ -108,7 +113,7 @@ bool cell_gui::time_tick()
       for (int xs=-iNs_m;xs<=iNs_m;++xs)
         for (int ys=-iNs_m;ys<=iNs_m;++ys)
         {
-          unsigned char* p2 = in + ((y+ys)%h) * rowstride + ((x+xs)%w) * nchannels;
+          unsigned char* p2 = in + abs((y+ys)%h) * rowstride + abs((x+xs)%w) * nchannels;
           int p2_type = p2[0]>p2[1] ? (p2[0]>p2[2]? 0 : 2):(p2[1]>p2[2]? 1:2);
           ++population[p2_type];
         }
