@@ -11,9 +11,13 @@ class cell_gui : public sigc::trackable
   Gtk::Window* ptrCellWin_m;
   Glib::RefPtr<Gdk::Pixbuf> refPixbuf_m;
   Glib::RefPtr<Gdk::Pixbuf> refPixbufBack_m;
+  int iBrushSize_m;
+
+  bool guard_m;
   //methods
   bool on_draw_area_button_release_event(GdkEventButton *ev);
   bool on_draw_area_expose(GdkEventExpose *ev);
+  bool on_draw_area_motion_notify_event(GdkEventMotion* ev);
   bool redraw() {ptrDrawArea_m->queue_draw(); return true;}
   bool time_tick();
 public:
