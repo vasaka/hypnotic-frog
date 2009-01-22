@@ -9,12 +9,13 @@ cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
   refXml->get_widget("cell", ptrCellWin_m);
 
   refPixbuf_m = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB, FALSE, 8, ptrDrawArea_m->get_width(), ptrDrawArea_m->get_height());
+  refPixbufBack_m = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB, FALSE, 8, ptrDrawArea_m->get_width(), ptrDrawArea_m->get_height());
 
   ptrDrawArea_m->signal_button_release_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_button_release_event));
   ptrDrawArea_m->signal_expose_event().connect(sigc::mem_fun(*this, &cell_gui::on_draw_area_expose));
 
-  //Glib::signal_timeout().connect(sigc::mem_fun(*this, &cell_gui::redraw), 100);
-  //Glib::signal_idle().connect(sigc::mem_fun(*this, &cell_gui::time_tick),50);
+  Glib::signal_timeout().connect(sigc::mem_fun(*this, &cell_gui::redraw), 250);
+  Glib::signal_idle().connect(sigc::mem_fun(*this, &cell_gui::time_tick));
 }
 
 cell_gui::~cell_gui()
@@ -34,7 +35,6 @@ bool cell_gui::on_draw_area_button_release_event(GdkEventButton *ev)
 	guchar* p = pixels + y * rowstride + x * nchannels;
 	p[0] = ((x+y)*768)%255; p[1] = (y*378)%255; p[2] = (x*998)%255;
   
-	time_tick();
   ptrDrawArea_m->queue_draw();
 	return 0;
 }
@@ -60,12 +60,12 @@ bool cell_gui::time_tick()
   int nchannels = refPixbuf_m->get_n_channels ();
 
   guchar* in = refPixbuf_m->get_pixels();
-  guchar* out = in;
+  guchar* out = refPixbufBack_m->get_pixels();
 
 //  cout << w << ' ' << h << ' ' << rowstride << ' ' << nchannels << "\n";
   
-  for (int x=0;x<w-1;++x)
-    for (int y=0;y<h-1;++y)
+  for (int x=0;x<w;++x)
+    for (int y=0;y<h;++y)
     {
       ////////////////////////////////////////////###################################################
       unsigned char* p1 = in + y * rowstride + x * nchannels;
@@ -89,14 +89,15 @@ bool cell_gui::time_tick()
 
       p1_type = p1[0]>p1[1] ? (p1[0]>=p1[2]? 0 : 2):(p1[1]>=p1[2]? 1:2);
       p2_type = p2[0]>p2[1] ? (p2[0]>=p2[2]? 0 : 2):(p2[1]>=p2[2]? 1:2);
-      if ((p2_type+2)%3 == p1_type) {p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;}
+      if ((p2_type+1)%3 == p1_type) {p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;}
       ////////////////////////////////////////////###################################################
       p2 = in + abs((y-1)%h) * rowstride + x * nchannels;
       p = out + abs((y-1)%h) * rowstride + x * nchannels;
 
       p1_type = p1[0]>p1[1] ? (p1[0]>=p1[2]? 0 : 2):(p1[1]>=p1[2]? 1:2);
       p2_type = p2[0]>p2[1] ? (p2[0]>=p2[2]? 0 : 2):(p2[1]>=p2[2]? 1:2);
-      if ((p2_type+2)%3 == p1_type) {p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;}
+      if ((p2_type+1)%3 == p1_type) {p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;}
     }
-    ptrDrawArea_m->queue_draw(); return true;
+    refPixbufBack_m.swap(refPixbuf_m);
+    return true;
 }

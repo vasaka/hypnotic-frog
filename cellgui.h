@@ -10,6 +10,7 @@ class cell_gui : public sigc::trackable
   Gtk::DrawingArea* ptrDrawArea_m;
   Gtk::Window* ptrCellWin_m;
   Glib::RefPtr<Gdk::Pixbuf> refPixbuf_m;
+  Glib::RefPtr<Gdk::Pixbuf> refPixbufBack_m;
   //methods
   bool on_draw_area_button_release_event(GdkEventButton *ev);
   bool on_draw_area_expose(GdkEventExpose *ev);
