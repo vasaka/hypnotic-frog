@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<glade-interface>
+  <requires-version lib="gtk+" version="2.12"/>
+  <widget class="GtkWindow" id="cell">
+    <property name="width_request">600</property>
+    <property name="height_request">600</property>
+    <property name="visible">True</property>
+    <signal name="destroy" handler="on_cell_destroy"/>
+    <child>
+      <widget class="GtkDrawingArea" id="draw_area">
+        <property name="visible">True</property>
+        <property name="events">GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_VISIBILITY_NOTIFY_MASK</property>
+        <signal name="configure_event" handler="on_draw_area_configure_event"/>
+        <signal name="button_release_event" handler="on_draw_area_button_release_event"/>
+        <signal name="show" handler="on_draw_area_show"/>
+      </widget>
+    </child>
+  </widget>
+</glade-interface>
