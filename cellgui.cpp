@@ -88,6 +88,7 @@ bool cell_gui::time_tick()
   int h = refPixbuf_m->get_height();
   int rowstride = refPixbuf_m->get_rowstride();
   int nchannels = refPixbuf_m->get_n_channels ();
+  refPixbuf_m->copy_area(0,0,w,h,refPixbufBack_m,0,0);
 
   guchar* in = refPixbuf_m->get_pixels();
   guchar* out = refPixbufBack_m->get_pixels();
@@ -100,8 +101,8 @@ bool cell_gui::time_tick()
       unsigned char* p1 = in + y * rowstride + x * nchannels;
       unsigned char* p = out + y * rowstride + x * nchannels;
       int p1_type = p1[0]>p1[1] ? (p1[0]>p1[2]? 0 : 2):(p1[1]>p1[2]? 1:2);
-      //p[p1_type]+=(255-p[p1_type])/2;p[(p1_type+1)%3]/=2;p[(p1_type+2)%3]/=2;
-      p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;
+      //p[p1_type]+=(255-p[p1_type])/10;p[(p1_type+1)%3]*=0.8;p[(p1_type+2)%3]*=0.8;
+      //p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;
       int population[3] = {0,0,0};
           
       for (int xs=-iNs_m;xs<=iNs_m;++xs)
@@ -115,9 +116,9 @@ bool cell_gui::time_tick()
 //      population[2]-=population[2]/3.3;
       if (population[(p1_type+1)%3]>((population[p1_type]/2)-dStabilizer_m))
       {
-        p[(p1_type+1)%3] += (255-p[(p1_type+1)%3])/2;
-        p[(p1_type+0)%3] /= 8;
-        p[(p1_type+2)%3] /= 8;
+        p[(p1_type+1)%3] += (255-p[(p1_type+1)%3])*0.5;
+        p[(p1_type+0)%3] *= 0.8;
+        p[(p1_type+2)%3] *= 0.8;
       }
     }
     refPixbufBack_m.swap(refPixbuf_m);
