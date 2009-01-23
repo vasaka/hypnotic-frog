@@ -1,11 +1,8 @@
 #include "cellgui.h"
 #include "pixbuf_index.h"
 
-#include <iostream>
-using namespace std;
-
 cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
-	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(true),iBrushSize_m(10),dStabilizer_m(1),iNs_m(1)
+	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(true),iBrushSize_m(10),dStabilizer_m(1),iNs_m(1),iBrushModesNum_m(4),iBrushMode_m(0),iBrushX_m(0),iBrushY_m(0)
 {
   refXml->get_widget("draw_area", ptrDrawArea_m);
   refXml->get_widget("cell", ptrCellWin_m);
@@ -38,8 +35,10 @@ cell_gui::~cell_gui()
 // events //////////////////////////////////////////////////////////
 bool cell_gui::on_draw_area_button_release_event(GdkEventButton *ev)
 {  
-  if (!(ev->state&GDK_BUTTON1_MASK))
-    ++iBrushSize_m;
+  if (ev->state==GDK_BUTTON3_MASK)
+    ++iBrushMode_m;
+  if (iBrushMode_m == iBrushModesNum_m)
+    iBrushMode_m = 0;
 	return 0;
 }
 
@@ -81,26 +80,17 @@ bool cell_gui::on_draw_area_expose(GdkEventExpose *ev)
 
 bool cell_gui::on_draw_area_motion_notify_event(GdkEventMotion* ev)
 {
-  if (!(ev->state&GDK_BUTTON1_MASK))
-    return true; 
   while (guard_m) return true;
-      guard_m = true;
+  guard_m = true;
+  
+  iBrushX_m = ev->x;
+  iBrushY_m = ev->y;
+ 
+  if (ev->state==GDK_BUTTON1_MASK)
+    PaintBrush(refPixbufBack_m);
+  else
+    PaintBrush(refPixbuf_m);
 
-  int x_ = ev->x;
-  int y_ = ev->y;
-  int w = refPixbuf_m->get_width();
-  int h = refPixbuf_m->get_height();
-  Index<Glib::RefPtr<Gdk::Pixbuf> > I(refPixbuf_m);
-  guchar* pixels = refPixbuf_m->get_pixels();
-  for (int _x = -iBrushSize_m;_x<=iBrushSize_m;_x++)
-    for (int _y = -sqrt(iBrushSize_m*iBrushSize_m-_x*_x);_y<=sqrt(iBrushSize_m*iBrushSize_m-_x*_x);_y++)
-    {
-      int x = abs((x_ + _x)%w);
-      int y = abs((_y + y_)%h);
-      guchar* p = pixels + I(x,y);
-      p[0] = ((x*y)/255)%255; p[1] = ((y*y)/255)%255; p[2] = ((x*x)/255)%255;
-      //p[0] = p[1] = p[2] = 0;
-    }
   guard_m = false;
   return true;
 }
@@ -111,13 +101,13 @@ bool cell_gui::time_tick()
   if (guard_m) return true;
   guard_m = true;
 
-  int w = refPixbuf_m->get_width();
-  int h = refPixbuf_m->get_height();
-  Index<Glib::RefPtr<Gdk::Pixbuf> > I(refPixbuf_m);
-  refPixbuf_m->copy_area(0,0,w,h,refPixbufBack_m,0,0);
+  int w = refPixbufBack_m->get_width();
+  int h = refPixbufBack_m->get_height();
+  Index<Glib::RefPtr<Gdk::Pixbuf> > I(refPixbufBack_m);
+  refPixbufBack_m->copy_area(0,0,w,h,refPixbuf_m,0,0);
 
-  guchar* in = refPixbuf_m->get_pixels();
-  guchar* out = refPixbufBack_m->get_pixels();
+  guchar* in = refPixbufBack_m->get_pixels();
+  guchar* out = refPixbuf_m->get_pixels();
 
   for (int x=0;x<w;x++)
     for (int y=0;y<h;y++)
@@ -145,7 +135,8 @@ bool cell_gui::time_tick()
         p[(p1_type+2)%3] *= 0.8;
       }
     }
-    refPixbufBack_m.swap(refPixbuf_m);
+    refPixbuf_m.swap(refPixbufBack_m);
+    PaintBrush(refPixbuf_m);
     guard_m = false;
     return true;
 }
@@ -164,6 +155,31 @@ bool cell_gui::load(std::string filename)
   while (guard_m) {};
   guard_m = true;
   Glib::RefPtr<Gdk::Pixbuf> temp = Gdk::Pixbuf::create_from_file(filename);
-  temp->copy_area(0,0,temp->get_width(),temp->get_height(),refPixbuf_m,0,0);
+  temp->copy_area(0,0,temp->get_width(),temp->get_height(),refPixbufBack_m,0,0);
   guard_m = false;
+}
+
+void cell_gui::PaintBrush(Glib::RefPtr<Gdk::Pixbuf> refPixbuf)
+{
+  int x_ = iBrushX_m;
+  int y_ = iBrushY_m;
+  int w = refPixbufBack_m->get_width();
+  int h = refPixbufBack_m->get_height();
+  Index<Glib::RefPtr<Gdk::Pixbuf> > I(refPixbufBack_m);
+  guchar* pixels = refPixbuf->get_pixels();
+
+  for (int _x = -iBrushSize_m;_x<=iBrushSize_m;_x++)
+    for (int _y = -sqrt(iBrushSize_m*iBrushSize_m-_x*_x);_y<=sqrt(iBrushSize_m*iBrushSize_m-_x*_x);_y++)
+    {
+      int x = abs((x_ + _x)%w);
+      int y = abs((_y + y_)%h);
+      guchar* p = pixels + I(x,y);
+      switch(iBrushMode_m)
+      {
+        case 0/*color*/: {p[0] = ((x*y)/255)%255; p[1] = ((y*y)/255)%255; p[2] = ((x*x)/255)%255; break;}
+        case 1/*red*/: {p[0] = 255; p[1] = 0; p[2] = 0; break;}
+        case 2/*green*/: {p[0] = 0; p[1] = 255; p[2] = 0; break;}
+        case 3/*blue*/: {p[0] = 0; p[1] = 0; p[2] = 255; break;}
+      }
+    }
 }
