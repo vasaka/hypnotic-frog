@@ -22,6 +22,8 @@ class cell_gui : public sigc::trackable
   int iBrushMode_m;
   int iBrushX_m;
   int iBrushY_m;
+  int iFadeMode_m;
+  int iFadeModeNum;
   //events
   bool on_draw_area_button_release_event(GdkEventButton *ev);
   bool on_cell_key_press_event(GdkEventKey *ev);

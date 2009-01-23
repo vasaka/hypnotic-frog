@@ -1,4 +1,6 @@
 left mouse and move brushes up the picture
+right mouse changes brush mode
 mouse scroll changes brush size
 s saves state
 l loads state
+f change fade mode

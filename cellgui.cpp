@@ -2,7 +2,7 @@
 #include "pixbuf_index.h"
 
 cell_gui::cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml):
-	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(true),iBrushSize_m(10),dStabilizer_m(1),iNs_m(1),iBrushModesNum_m(4),iBrushMode_m(0),iBrushX_m(0),iBrushY_m(0)
+	ptrDrawArea_m(0),ptrCellWin_m(0),guard_m(true),iBrushSize_m(10),dStabilizer_m(1),iNs_m(1),iBrushModesNum_m(5),iBrushMode_m(0),iBrushX_m(0),iBrushY_m(0),iFadeMode_m(2),iFadeModeNum(3)
 {
   refXml->get_widget("draw_area", ptrDrawArea_m);
   refXml->get_widget("cell", ptrCellWin_m);
@@ -36,9 +36,7 @@ cell_gui::~cell_gui()
 bool cell_gui::on_draw_area_button_release_event(GdkEventButton *ev)
 {  
   if (ev->state==GDK_BUTTON3_MASK)
-    ++iBrushMode_m;
-  if (iBrushMode_m == iBrushModesNum_m)
-    iBrushMode_m = 0;
+    iBrushMode_m=(iBrushMode_m+1)%iBrushModesNum_m;
 	return 0;
 }
 
@@ -48,6 +46,8 @@ bool cell_gui::on_cell_key_press_event(GdkEventKey *ev)
     save("save.bmp");
   if (ev->keyval==GDK_l)
     load("save.bmp");
+  if (ev->keyval==GDK_f)
+    iFadeMode_m=(iFadeMode_m+1)%iFadeModeNum;
 }
 
 bool cell_gui::on_draw_area_scroll_event(GdkEventScroll* ev)
@@ -115,8 +115,6 @@ bool cell_gui::time_tick()
       unsigned char* p1 = in + I(x,y);
       unsigned char* p = out + I(x,y);
       int p1_type = p1[0]>p1[1] ? (p1[0]>p1[2]? 0 : 2):(p1[1]>p1[2]? 1:2);
-      //p[p1_type]+=(255-p[p1_type])/10;p[(p1_type+1)%3]*=0.8;p[(p1_type+2)%3]*=0.8;
-      //p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;
       int population[3] = {0,0,0};
           
       for (int xs=-iNs_m;xs<=iNs_m;++xs)
@@ -133,6 +131,11 @@ bool cell_gui::time_tick()
         p[(p1_type+1)%3] += (255-p[(p1_type+1)%3])*0.5;
         p[(p1_type+0)%3] *= 0.8;
         p[(p1_type+2)%3] *= 0.8;
+      }
+      switch(iFadeMode_m)
+      {
+        case 0/*hard*/:{p[p1_type]+=(255-p[p1_type])*0.1;p[(p1_type+1)%3]*=0.7;p[(p1_type+2)%3]*=0.7;break;}
+        case 1/*soft*/:{p[p1_type]+=(255-p[p1_type])*0.01;p[(p1_type+1)%3]*=0.99;p[(p1_type+2)%3]*=0.99;break;}
       }
     }
     refPixbuf_m.swap(refPixbufBack_m);
@@ -177,9 +180,10 @@ void cell_gui::PaintBrush(Glib::RefPtr<Gdk::Pixbuf> refPixbuf)
       switch(iBrushMode_m)
       {
         case 0/*color*/: {p[0] = ((x*y)/255)%255; p[1] = ((y*y)/255)%255; p[2] = ((x*x)/255)%255; break;}
-        case 1/*red*/: {p[0] = 255; p[1] = 0; p[2] = 0; break;}
-        case 2/*green*/: {p[0] = 0; p[1] = 255; p[2] = 0; break;}
-        case 3/*blue*/: {p[0] = 0; p[1] = 0; p[2] = 255; break;}
+        case 1/*black*/: {p[0] = 0; p[1] = 0; p[2] = 0; break;}
+        case 2/*red*/: {p[0] = 255; p[1] = 0; p[2] = 0; break;}
+        case 3/*green*/: {p[0] = 0; p[1] = 255; p[2] = 0; break;}
+        case 4/*blue*/: {p[0] = 0; p[1] = 0; p[2] = 255; break;}
       }
     }
 }
