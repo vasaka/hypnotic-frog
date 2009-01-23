@@ -1,4 +1,6 @@
 #include "cellgui.h"
+#include "pixbuf_index.h"
+
 #include <iostream>
 using namespace std;
 
@@ -88,15 +90,14 @@ bool cell_gui::on_draw_area_motion_notify_event(GdkEventMotion* ev)
   int y_ = ev->y;
   int w = refPixbuf_m->get_width();
   int h = refPixbuf_m->get_height();
-  int rowstride = refPixbuf_m->get_rowstride();
-  int nchannels = refPixbuf_m->get_n_channels();
+  Index<Glib::RefPtr<Gdk::Pixbuf> > I(refPixbuf_m);
   guchar* pixels = refPixbuf_m->get_pixels();
-  for (int _x = 0;_x<iBrushSize_m;_x++)
-    for (int _y = 0;_y<iBrushSize_m;_y++)
+  for (int _x = -iBrushSize_m;_x<=iBrushSize_m;_x++)
+    for (int _y = -sqrt(iBrushSize_m*iBrushSize_m-_x*_x);_y<=sqrt(iBrushSize_m*iBrushSize_m-_x*_x);_y++)
     {
       int x = abs((x_ + _x)%w);
       int y = abs((_y + y_)%h);
-      guchar* p = pixels + y * rowstride + x * nchannels;
+      guchar* p = pixels + I(x,y);
       p[0] = ((x*y)/255)%255; p[1] = ((y*y)/255)%255; p[2] = ((x*x)/255)%255;
       //p[0] = p[1] = p[2] = 0;
     }
@@ -112,8 +113,7 @@ bool cell_gui::time_tick()
 
   int w = refPixbuf_m->get_width();
   int h = refPixbuf_m->get_height();
-  int rowstride = refPixbuf_m->get_rowstride();
-  int nchannels = refPixbuf_m->get_n_channels ();
+  Index<Glib::RefPtr<Gdk::Pixbuf> > I(refPixbuf_m);
   refPixbuf_m->copy_area(0,0,w,h,refPixbufBack_m,0,0);
 
   guchar* in = refPixbuf_m->get_pixels();
@@ -122,8 +122,8 @@ bool cell_gui::time_tick()
   for (int x=0;x<w;x++)
     for (int y=0;y<h;y++)
     {
-      unsigned char* p1 = in + y * rowstride + x * nchannels;
-      unsigned char* p = out + y * rowstride + x * nchannels;
+      unsigned char* p1 = in + I(x,y);
+      unsigned char* p = out + I(x,y);
       int p1_type = p1[0]>p1[1] ? (p1[0]>p1[2]? 0 : 2):(p1[1]>p1[2]? 1:2);
       //p[p1_type]+=(255-p[p1_type])/10;p[(p1_type+1)%3]*=0.8;p[(p1_type+2)%3]*=0.8;
       //p[p1_type]=255;p[(p1_type+1)%3]=0;p[(p1_type+2)%3]=0;
@@ -132,7 +132,7 @@ bool cell_gui::time_tick()
       for (int xs=-iNs_m;xs<=iNs_m;++xs)
         for (int ys=-iNs_m;ys<=iNs_m;++ys)
         {
-          unsigned char* p2 = in + abs((y+ys)%h) * rowstride + abs((x+xs)%w) * nchannels;
+          unsigned char* p2 = in + I(abs((x+xs)%w),abs((y+ys)%h));
           int p2_type = p2[0]>p2[1] ? (p2[0]>p2[2]? 0 : 2):(p2[1]>p2[2]? 1:2);
           ++population[p2_type];
         }

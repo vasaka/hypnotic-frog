@@ -1,6 +1,7 @@
 #ifndef CELL_GUI_H
 #define CELL_GUI_H
 
+#include "service_defs.h"
 #include <libglademm/xml.h>
 #include <gtkmm.h>
 #include <string.h>
@@ -27,6 +28,7 @@ class cell_gui : public sigc::trackable
   bool load(std::string filename);
   bool redraw() {ptrDrawArea_m->queue_draw(); return true;}
   bool time_tick();
+  DISALLOW_COPY_AND_ASSIGN(cell_gui);
 public:
   cell_gui(Glib::RefPtr<Gnome::Glade::Xml> refXml);
   Gtk::Window& get_window() { return *ptrCellWin_m; }
